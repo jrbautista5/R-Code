@@ -104,4 +104,9 @@ View(cor(credit.numeric))
 
 # We find that the Approve variable has a correlation coefficient of ~0.57, which makes sense because Approve only has 0/1 values and the fitted values will be continuous on the interval [0,1]. So, a correlation coefficient around 0.5 makes decent sense.
 
+#Gather more predictive stats about predictors and model1:
+summary(credit)
+
+#This line just gives a basic idea about the distributions of all of the variables in the 'credit' dataset.
+
 
