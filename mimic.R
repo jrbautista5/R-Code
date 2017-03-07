@@ -76,7 +76,7 @@ model1_approved <- length(subset(model1$fitted.values, model1$fitted.values > 0.
 model1_denied <- (nrow(credit) - model1_approved) / length(as.numeric(credit$Approve[credit$Approve == 0]))
 # We over predicted by approximately `(1.078329 - 1)*nrow(credit)` or 54 applications of those that we know to be denied.
 
-#Gather the indices of the fitted values < 0.5 and compare them to the known declined applications in the 'credit' dataset.
+#Gather the indices of the fitted values < 0.5 and compare them to the known declined applications in the 'credit' dataset. For the purpose of our analysis, if a predicted value falls below 0.5 we will consider it as a denial.
 predicted.declined.index <- as.numeric(as.character(names(model1$fitted.values[model1$fitted.values < 0.5])))
 BooleanApprove <- credit$Approve
 levels(BooleanApprove) <- c(FALSE, TRUE)
