@@ -7,7 +7,7 @@ library(gam)
 library(randomForest)
 library(gbm)
 
-# Import the credit dataframe:
+# Import the credit dataframe: (This is the location for my Desktop, this line will need to be changed in order to run it on your own computer.
 credit <- read.csv('/Users/ruebenbautista/Desktop/crx.data.txt')
 
 # Rename the columns of the 'credit' dataframe:
@@ -16,7 +16,7 @@ colnames(credit) <- c('Male', 'Age', 'Debt', 'Married', 'BankCustomer',
                    'PriorDefault', 'Employed', 'CreditScore',
                    'DriversLicense', 'Citizen', 'ZipCode',
                    'Income', 'Approve')
-#---------------
+#---------------------------------------------------------------------------
 
 # Clean data and get rid of '?' and replace with NA values:
 levels(credit$Approve) <- c(0, 1)
@@ -27,7 +27,7 @@ credit$BankCustomer <- replace(credit$BankCustomer, credit$BankCustomer == '?', 
 credit$EducationLevel <- replace(credit$EducationLevel, credit$EducationLevel == '?', NA)
 credit$Ethnicity <- replace(credit$Ethnicity, credit$Ethnicity == '?', NA)
 credit$ZipCode <- replace(credit$ZipCode, credit$ZipCode == '?', NA)
-#---------------
+#---------------------------------------------------------------------------
 
 #Create a multiple linear regression model to predict missing Age values.
 age.predictor <- lm(Age ~ Debt + YearsEmployed + Married, data = credit)
@@ -35,11 +35,11 @@ age.predictor <- lm(Age ~ Debt + YearsEmployed + Married, data = credit)
 predicted_age <- predict(age.predictor, data = credit)
 
 credit$Age[is.na(credit$Age)] = predicted_age[is.na(credit$Age)]
-
+#---------------------------------------------------------------------------
 #Fill in missing categorical values with the mode for each.
 
 credit$BankCustomer[is.na(credit$BankCustomer)] = 'g'
-
+#---------------------------------------------------------------------------
 # Log Transforms of Variables
 credit$IncomeLog <- log10(credit$Income + 0.1)
 boxplot(credit$IncomeLog ~ credit$Approve, horizontal = TRUE)
@@ -62,21 +62,18 @@ boxplot(credit$YearsEmployedLog, horizontal = TRUE)
 
 credit$DebtLog <- log10(credit$Debt + 0.1)
 boxplot(credit$DebtLog, horizontal = TRUE)
+
+#---------------------------------------------------------------------------
 #Begin the logistic regression copy from the Kuhn paper:
 
 model1 <- glm(formula = Approve ~ AgeNorm + DebtLog + YearsEmployedLog + 
       CreditScoreLog + IncomeLog, family = binomial, data = credit)
 summary(model1)
+#---------------------------------------------------------------------------
 
-#Calculate approved proportion from the fitted values:
-model1_approved <- length(subset(model1$fitted.values, model1$fitted.values > 0.5)) / length(credit$Approve[credit$Approve == 1])
-#We correctly predicted approximately 0.90 of the Approved applications in the 'credit' data.
+# Our next goal is to determine how well our model predicted whether a certain person would be approved or denied.
 
-#Calculate rejected proportion from the model1 fitted values:
-model1_denied <- (nrow(credit) - model1_approved) / length(as.numeric(credit$Approve[credit$Approve == 0]))
-# We over predicted by approximately `(1.078329 - 1)*nrow(credit)` or 54 applications of those that we know to be denied.
-
-#Gather the indices of the fitted values < 0.5 and compare them to the known declined applications in the 'credit' dataset. For the purpose of our analysis, if a predicted value falls below 0.5 we will consider it as a denial.
+# Let's gather the indices of the fitted values < 0.5 and compare them to the known declined applications in the 'credit' dataset. For the purpose of our analysis, if a predicted value falls below 0.5 we will consider it as a denial.
 predicted.declined.index <- as.numeric(as.character(names(model1$fitted.values[model1$fitted.values < 0.5])))
 BooleanApprove <- credit$Approve
 levels(BooleanApprove) <- c(FALSE, TRUE)
@@ -92,8 +89,11 @@ for (i in 1:length(predicted.declined.index))
 new <- new[!is.na(new)]
 correct.predicted <- length(new) / length(credit$Approve[credit$Approve == 0])
 #correct.predicted == 0.8276762
+#---------------------------------------------------------------------------
 
-#Create a numeric credit dataframe by selecting the columns with numeric entires. If the columns do not have the 'numeric' class, change them into numeric. Additionally, add a column to this numeric dataframe of the fitted values from model1. We want to run a correlation and see how closely the predictor variables are to 
+# The following is a way to see (all at once) how our predictor variables correlate with one another. `lm` gives us significance of variables, however it may be more useful to see the direct correlations. Additionally, we can see the impact our 
+# Create a numeric credit dataframe by selecting the columns with numeric entires. If the columns do not have the 'numeric' class, change them into numeric. Additionally, we will add a column to this numeric dataframe of the fitted values from model1 in order to see how the fitted values correlate.
+
 credit.numeric <- credit[c(2, 3, 8, 11, 15, 16, 17, 18, 19, 20, 21, 22)]
 credit.numeric$Model1FittedValues <- model1$fitted.values
 credit.numeric$Approve <- as.numeric(as.character(credit.numeric$Approve))
@@ -102,5 +102,6 @@ credit.numeric$Income <- as.numeric(credit.numeric$Income)
 
 View(cor(credit.numeric))
 
+# We find that the Approve variable has a correlation coefficient of ~0.57, which makes sense because Approve only has 0/1 values and the fitted values will be continuous on the interval [0,1]. So, a correlation coefficient around 0.5 makes decent sense.
 
 
