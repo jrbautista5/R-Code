@@ -110,3 +110,24 @@ summary(credit)
 #This line just gives a basic idea about the distributions of all of the variables in the 'credit' dataset.
 
 
+#Consider an Age threshold and break the data to see the differences in correlations between the two subsets. Found threshold by sorting (sorted.age <- sort(credit$Age)) and then dividing the length by 2 and rounding to the nearest whole number, 28.
+younger_than_28 <- subset(credit.numeric, Age < 28)
+View(cor(younger_than_28))
+
+older_than_28 <- subset(credit.numeric, Age >= 28)
+View(cor(older_than_28))
+
+#Models on Age subsets:
+model_young <- glm(formula = Approve ~ DebtLog + YearsEmployedLog + CreditScoreLog + IncomeLog, family = binomial, data = younger_than_28)
+summary(model_young)
+#Significant predictors: YearsEmployedLog and CreditScoreLog
+younger_than_28$Approve2 <- younger_than_28$Approve
+levels(younger_than_28$Approve2) <- c(-1, 1)
+predYoung <- sign(predict(model_young))
+mean(younger_than_28$Approve2 == predYoung)
+
+
+model_old <- glm(formula = Approve ~ DebtLog + YearsEmployedLog + CreditScoreLog + IncomeLog, family = binomial, data = older_than_28)
+summary(model_old)
+#Significant predictors: YearsEmployedLog, CreditScoreLog, and IncomeLog
+
