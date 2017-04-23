@@ -36,7 +36,7 @@ test = credit.numeric[-train_ind, ]
                     s(CreditScore, bs='ps', sp=lam) + s(Income, bs='ps', sp=lam), data = train)
   summary(b1)
   plot(b1)
-  
+   
   
   # # # plot the smooth predictor function for x1 with ggplot to get a nicer looking graph
   #  p <- predict(b1, type="lpmatrix")
