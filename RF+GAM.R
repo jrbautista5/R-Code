@@ -208,8 +208,8 @@ total$PredictedBoolean = as.numeric(total$Predicted)
 #Now if submitRF has predicted values of 1, copy it over
 total$PredictedBoolean <- ifelse(submit$PredictedBoolean==0, total$PredictedBoolean <- 0, total$PredictedBoolean <- submitRF$Predicted)
 
-ourCMRF <- confusionMatrix(data = total$PredictedBoolean, reference = total$Real)
-ourCMRF
+ourCMTotal <- confusionMatrix(data = total$PredictedBoolean, reference = total$Real)
+ourCMTotal
 
 #View(as.matrix(ourCM))
 #}
