@@ -135,9 +135,9 @@ train = credit.PDC[train_ind, ]
 test = credit.PDC[-train_ind, ]
 
 # no eth, no male: 87.3%
-fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
-fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
-fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
+#fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
+#fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
+#fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
 fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
 
 predictionRF = predict(fit, test)
@@ -176,6 +176,10 @@ b1 <- mgcv::gam(Approve ~ s(PriorDefault, bs='ps', sp=lam), data = train)
 summary(b1)
 plot(b1)
 prediction <- predict(b1, newdata=test) #prediction is a list of values
+submit = data.frame(Real = test$Approve, Predicted = prediction, check.names = FALSE, row.names = NULL)
+submit$Real = as.numeric(submit$Real)
+submit$Predicted = as.numeric(submit$Predicted)
+submit$PredictedBoolean <- ifelse(submit$Predicted < 0.5, submit$PredictedBoolean <- 0, submit$PredictedBoolean <- 1)
 #==================================================================================
 #Build Confusion Matrix
 dataFramePrediction <- data.frame((prediction))
