@@ -146,7 +146,11 @@ test = credit.PDC[-train_ind, ]
 #fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
 #fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
 #fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
+#fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
+
+# No ethnicity: 88.4%
 fit <- randomForest(as.factor(Approve) ~ Male + Age + Debt + Married + BankCustomer + EducationLevel + YearsEmployed + PriorDefault + Employed + CreditScore + DriversLicense + Citizen + Income, data=train, importance=TRUE, ntree=2000, na.action=na.exclude)
+
 
 predictionRF = predict(fit, test)
 predictionRF[is.na(predictionRF)] = 0
@@ -183,15 +187,15 @@ b1 <- mgcv::gam(Approve ~ s(PriorDefault, bs='ps', sp=lam), data = train)
 
 summary(b1)
 plot(b1)
-prediction <- predict(b1, newdata=test) #prediction is a list of values
-submit = data.frame(Real = test$Approve, Predicted = prediction, check.names = FALSE, row.names = NULL)
-submit$Real = as.numeric(submit$Real)
-submit$Predicted = as.numeric(submit$Predicted)
-submit$PredictedBoolean <- ifelse(submit$Predicted < 0.5, submit$PredictedBoolean <- 0, submit$PredictedBoolean <- 1)
+predictionGAM <- predict(b1, newdata=test) #prediction is a list of values
+submitGAM = data.frame(Real = test$Approve, Predicted = predictionGAM, check.names = FALSE, row.names = NULL)
+submitGAM$Real = as.numeric(submitGAM$Real)
+submitGAM$Predicted = as.numeric(submitGAM$Predicted)
+submitGAM$PredictedBoolean <- ifelse(submitGAM$Predicted < 0.5, submitGAM$PredictedBoolean <- 0, submitGAM$PredictedBoolean <- 1)
 #==================================================================================
 #Build Confusion Matrix
-dataFramePrediction <- data.frame((prediction))
-ourCM <- confusionMatrix(data = submit$PredictedBoolean, reference = submit$Real)
+dataFramePrediction <- data.frame((predictionGAM))
+ourCM <- confusionMatrix(data = submitGAM$PredictedBoolean, reference = submitGAM$Real)
 ourCM
 
 
@@ -201,12 +205,19 @@ ourCM
 
 
 #prediction[is.na(prediction)] = 0
-total <-submitRF
+total <- submitRF
 #Temporarily make same as RF data
 total$Real = as.numeric(total$Real)
 total$PredictedBoolean = as.numeric(total$Predicted)
-#Now if submitRF has predicted values of 1, copy it over
-total$PredictedBoolean <- ifelse(submit$PredictedBoolean==0, total$PredictedBoolean <- 0, total$PredictedBoolean <- submitRF$Predicted)
+total$RFPredicted <- submitRF$Predicted
+total$GAMPredicted <- submitGAM$PredictedBoolean
+#Now if submitGAM has predicted values of 0, copy it over
+total$PredictedBoolean <- ifelse(submitGAM$PredictedBoolean==0, total$PredictedBoolean <- 0, ifelse(submitRF$Predicted==1, total$PredictedBoolean <-1, total$PredictedBoolean <-0))
+
+
+#total$PredictedBoolean <- ifelse(submitGAM$PredictedBoolean==0, total$PredictedBoolean <- 0)
+#total$PredictedBoolean <- ifelse(submitRF$Predicted==1, total$PredictedBoolean <- 1)
+
 
 ourCMTotal <- confusionMatrix(data = total$PredictedBoolean, reference = total$Real)
 ourCMTotal
